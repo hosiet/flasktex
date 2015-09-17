@@ -1,0 +1,9 @@
+<uwsgi>
+    <socket>127.0.0.1:3035</socket>
+    <chdir>/var/www/html/tex</chdir>
+    <workers>1</workers>
+    <plugin>python3</plugin>
+    <module>mainapp</module>
+    <callable>app</callable>
+    <master />
+</uwsgi>

@@ -1,0 +1,14 @@
+[Unit]
+Description=uWSGI Tex Server
+After=syslog.target network.target
+
+[Service]
+ExecStart=/usr/bin/uwsgi --xml /var/www/html/tex/uwsgi.xml
+Restart=Always
+KillSignal=SIGQUIT
+Type=notify
+User=www-data
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target
