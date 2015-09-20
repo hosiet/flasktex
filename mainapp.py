@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
-from flasktex import app
+import flasktex
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# Won't run
+app = flasktex.app
+
+#  vim: set ts=8 sw=4 tw=0 et :

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from . import app
+from flasktex import app
 
 @app.route("/")
 def ft_welcome():
