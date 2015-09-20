@@ -3,7 +3,7 @@ Description=uWSGI Tex Server
 After=syslog.target network.target
 
 [Service]
-ExecStart=/usr/bin/uwsgi --xml /var/www/html/flasktex/uwsgi.xml
+ExecStart=/usr/bin/uwsgi --xml /var/www/html/flasktex/flasktex.xml
 Restart=Always
 KillSignal=SIGQUIT
 Type=notify
