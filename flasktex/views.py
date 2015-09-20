@@ -11,6 +11,6 @@ def ft_webpage_welcome():
 @app.route("/about")
 def ft_webpage_about():
     resp = make_response();
-    resp.headers['Content-Type'] = 'text/plain'
-    resp.data = render_template('common.xhtml', title="关于", body="示例")
+    resp.headers['Content-Type'] = 'application/xhtml+xml'
+    resp.data = render_template('common.xhtml', title="关于", body="这是一个在线渲染 LaTeX 文档的尝试")
     return resp
