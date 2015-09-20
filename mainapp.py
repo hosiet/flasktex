@@ -1,9 +1,6 @@
 #!/usr/bin/python3
 
-from flask import Flask
+from flasktex import app
 
-app = Flask(__name__)
-
-@app.route("/")
-def helloworld():
-    return("Hello world!")
+if __name__ == "__main__":
+    app.run(debug=True)
