@@ -2,6 +2,10 @@
 
 import flasktex
 
+# Workaround to chdir
+import os
+os.chdir('./flasktex/')
+
 # Won't run
 app = flasktex.app
 
