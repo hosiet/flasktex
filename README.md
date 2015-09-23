@@ -1,6 +1,10 @@
 # flasktex
 - Compile and get PDF online by Flask and (Xe)LaTeX
 
+## Useful latex arguments
+
+* `halt-on-error` Exit with error code immediately after error happened.
+
 * * *
 
 ## LICENSE
