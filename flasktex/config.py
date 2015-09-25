@@ -4,6 +4,10 @@ Get Config From config.ini.
 
 """
 import configparser
+try:
+    a = CONFIG_PATH
+except NameError:
+    CONFIG_PATH = '/home/hosiet/src-nosync/github/flasktex/flasktex/'
 
 def ft_getconfig(keystr):
     """
@@ -19,7 +23,7 @@ def ft_getconfig(keystr):
             }
 
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read(CONFIG_PATH+'config.ini')
     assert 'GENERAL' in config
     assert 'RENDER' in config
     # Find keystr in all sections

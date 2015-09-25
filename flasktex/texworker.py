@@ -15,9 +15,11 @@ from flasktex.config import ft_getconfig
 DEFAULT_RENDERER = ft_getconfig("DEFAULTRENDERER")
 DEFAULT_TIMEOUT = ft_getconfig("WORKERTIMEOUT")
 DATABASE_NAME = ft_getconfig("DATABASENAME")
+DATABASE_PATH = ft_getconfig("DATABASEPATH")
 assert DEFAULT_RENDERER
 assert DEFAULT_TIMEOUT
 assert DATABASE_NAME
+assert DATABASE_PATH
 
 class TexWorker():
     """
@@ -27,12 +29,13 @@ class TexWorker():
     Will end-up in given seconds.
     """
     def __init__(self, rawstring, renderer=DEFAULT_RENDERER,
-                 timeout=DEFAULT_TIMEOUT, db=DATABASE_NAME, args=None):
+                 timeout=DEFAULT_TIMEOUT, db=DATABASE_NAME,
+                 path=DATABASE_PATH, args=None):
         self.rawstring = rawstring # Have to be UTF-8 String.
         assert hasattr(self.rawstring, 'encode')
         self.renderer = renderer
         self.timeout = timeout
-        self.conn = sqlite3.connect(db)
+        self.conn = sqlite3.connect(path+db)
         self.popen = None
         self.workid = None
         self.result = None

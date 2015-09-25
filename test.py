@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
-"""
-Code fragment to start a debuggable flask environ.
-"""
+#!/usr/bin/python3
 import flasktex
-
-if __name__ == "__main__":
-    flasktex.app.run(debug=True)
-
+f=open('testing.tex', 'r')
+s=f.read()
+f.close()
+worker = flasktex.texworker.TexWorker(s, renderer='pdflatex', timeout=60)
+worker._do_work()
