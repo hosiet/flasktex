@@ -1,6 +1,19 @@
 # flasktex
 - Compile and get PDF online by Flask and (Xe)LaTeX
 
+## Usage
+
+Read the code for details.
+
+#### Run as python module
+Simply run `import flasktex`
+
+#### Run as standalone HTTP Server for debug
+`python3 debug.py`
+
+#### Run with uwsgi support
+set module to mainapp and runnable to `app`.
+
 ## Useful latex arguments
 
 * `halt-on-error` Exit with error code immediately after error happened.
