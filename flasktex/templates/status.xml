@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+    {% for i in result %}
+    <job>
+        <id>{{ i[0] }}</id>
+        <userid>{{ i[1] }}</userid>
+        <starttime>{{ i[2] }}</starttime>
+        <stoptime>{{ i[3] }}</stoptime>
+        <status>{{ i[4] }}</status>
+    </job>
+    {% endfor %}
+</result>
