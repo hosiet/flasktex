@@ -5,7 +5,7 @@ CREATE TABLE `work` (
 `userid` INTEGER,
 `input` TEXT NOT NULL,
 `output` BLOB,                   -- PDF FILE
-`starttime` TEXT NOT NULL,    -- UNIX TIME, float
+`starttime` TEXT NOT NULL,    -- UNIX TIME, float, output of time.time()
 `stoptime` TEXT,
 `status` TEXT NOT NULL,          -- 'I', 'R', 'E', 'X', 'S'
 `log` TEXT);

@@ -36,9 +36,12 @@
 
 from flasktex import app
 from flasktex.config import ft_getconfig
-from flask import make_response, render_template
+from flasktex.db import ft_db_connect_sqlite
+import flasktex.texworker
+from flask import make_response, render_template, abort, request
 import os
 import sqlite3
+
 
 @app.route("/")
 def ft_webpage_welcome():
@@ -46,30 +49,79 @@ def ft_webpage_welcome():
 
 @app.route("/about")
 def ft_webpage_about():
-    resp = make_response();
+    resp = make_response(
+            render_template(
+                'common.xhtml',
+                title="关于",
+                body="这是一个在线渲染 LaTeX 文档的尝试")
+            )
     resp.headers['Content-Type'] = 'application/xhtml+xml'
-    resp.data = render_template('common.xhtml', title="关于", body="这是一个在线渲染 LaTeX 文档的尝试")
     return resp
 
-@app.route("/api/submit")
+@app.route("/api/submit", methods=['POST'])
 def ft_api_submit():
-    return "Hello"
+    """
+    Used for XHR to POST desired flasktex job.
+
+    QUERY_STRING example as follows:
+
+    * renderer=xelatex
+    * timeout=60
+    """
+    # TODO AUTH
+    # Then, obtain data and start the job
+    try:
+        data = request.get_data().decode('UTF-8')
+    except UnicodeDecodeError as e:
+        abort(400, 'UnicodeDecodeError')
+    renderer = ft_getconfig('DEFAULTRENDERER')
+    timeout = ft_getconfig('WORKERTIMEOUT')
+    if not request.args.get('renderer') == None:
+        renderer = request.args.get('renderer')
+    if not request.args.get('timeout') == None:
+        renderer = request.args.get('timeout')
+    worker = flasktex.texworker.TexWorker(data, renderer=renderer, timeout=timeout)
+    worker.run()
+    return make_response('ok workid={}'.format(worker.workid), 200)
+
+@app.route("/api/submit", methods=['GET'])
+def ft_api_submit_web():
+    if request.args.get('data') == None:
+        return "No arg"
+    return "Submit here with POST method"
 
 @app.route("/api/status")
 def ft_api_status():
     # First, read the database and obtain all the info
-    conn = sqlite3.connect(ft_getconfig('DATABASEPATH')+ft_getconfig('DATABASENAME'))
+    conn = ft_db_connect_sqlite()
     c = conn.cursor()
     c.execute('SELECT id, userid, starttime, stoptime, status FROM `work`;')
     result = c.fetchall()
     conn.close()
 
     # Second, make a response
-    resp = make_response();
+    resp = make_response()
     resp.headers['Content-Type'] = 'text/xml'
     resp.data = render_template('status.xml', result=result)
     return resp
 
 @app.route("/api/obtain/<int:work_id>")
 def ft_api_obtain(work_id):
-    return "hello obtain"
+    # First, open database conn and find the record
+    conn = ft_db_connect_sqlite()
+    c = conn.cursor()
+    try:
+        work_id = int(work_id)
+    except ValueError:
+        abort(400)
+    found = False
+    for i in c.execute('SELECT status, output FROM `work` WHERE id=?;', (work_id,)):
+        found = True
+        break
+    if not found or not i[0] == "S": # NOT SUCCESSFUL
+        abort(404)
+    resp =make_response(i[1], 200)
+    resp.headers['Content-Type'] = 'application/pdf'
+    conn.close()
+    return resp
+

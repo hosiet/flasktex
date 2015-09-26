@@ -42,7 +42,7 @@ import shutil
 import signal
 import sqlite3
 import time
-
+import syslog
 from flasktex.config import ft_getconfig
 
 # CONFIG
@@ -101,13 +101,11 @@ class TexWorker():
         except subprocess.TimeoutExpired:
             raise
         os.chdir("./{}/".format(tempdir))
-        print('now pwd is {}.'.format(os.getcwd())) # DEBUG
 
         # Write input file as `input.tex'
         f = open('input.tex', 'wb')
         f.write(self.rawstring.encode('UTF-8'))
         f.close()
-        print('input.tex File written.') # DEBUG
 
         # Form the Popen object, start the process, log in SQLite database
         self.popen = subprocess.Popen([self.renderer, '-no-shell-escape', '-halt-on-error', 'input.tex'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -119,7 +117,6 @@ class TexWorker():
         pass
 
     def __cleanup(self, success=False):
-        print('Beginning cleanup. result:{}.'.format(str(success))) # DEBUG
         c = self.conn.cursor()
         c.execute('BEGIN TRANSACTION;')
         if success:
@@ -154,17 +151,14 @@ class TexWorker():
         self.conn.close()
         # remove the temp dir
         cwd = os.getcwd()
-        print('pwd is {}.'.format(os.getcwd()))
         assert cwd.split('.')[0] == '/tmp/flasktex'
         os.chdir('..')
-        print('pwd is {}.'.format(os.getcwd()))
-        os.system('ls')
         shutil.rmtree(cwd)
-        os.system('ls')
+        syslog.syslog('end of __cleanup(). status is {}.'.format(str(success)))
         return
 
     def __terminate_handler(self, signum, stackframe):
-        print('Now inside signal handler.')
+        syslog('entered handler with signum of {}.'.format(signum))
         signal.alarm(0)
         if self.popen == None or self.popen.returncode != 0:
             self.__cleanup(success=False)
@@ -181,11 +175,13 @@ class TexWorker():
           is taking too much time, then gracefully exit and
           record the task as failed.
         """
+        syslog.syslog('entering _do_work().')
         signal.signal(signal.SIGALRM, self.__terminate_handler)
         signal.signal(signal.SIGTERM, self.__terminate_handler)
         signal.alarm(self.timeout)
         self.__startup()
         signal.alarm(0)
+        syslog.syslog('successfully finished the work within time.')
         self.__cleanup(success=True)
 
     def run(self): 
@@ -196,6 +192,7 @@ class TexWorker():
                 # return to flask worker
                 return
         except OSError as e:
+            syslog.syslog('OSError1!')
             raise
         os.chdir("/")
         os.setsid()
@@ -205,6 +202,7 @@ class TexWorker():
             if pid > 0:
                 sys.exit(0)
         except OSError as e:
+            syslog.syslog('OSError1!')
             raise
         sys.stdout.flush()
         sys.stderr.flush()
@@ -216,6 +214,7 @@ class TexWorker():
         os.dup2(se.fileno(), sys.stderr.fileno())
 
         # run the work.
+        syslog.syslog('Will now begin the work.')
         self._do_work()
 
 #  vim: set ts=8 sw=4 tw=0 et :
