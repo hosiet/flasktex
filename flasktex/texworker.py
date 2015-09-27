@@ -94,6 +94,7 @@ class TexWorker():
     def __startup(self):
         # Switch to working dir and make a subprocess.Popen object for working
         # After that, wait for timeout.
+        syslog.syslog('at the beginning of __startup().')
         os.chdir("/tmp/")
         tempdir = None
         try:
@@ -106,12 +107,13 @@ class TexWorker():
         f = open('input.tex', 'wb')
         f.write(self.rawstring.encode('UTF-8'))
         f.close()
+        syslog.syslog('after writing input.tex')
 
         # Form the Popen object, start the process, log in SQLite database
         self.popen = subprocess.Popen([self.renderer, '-no-shell-escape', '-halt-on-error', 'input.tex'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.conn.execute('UPDATE `work` SET `status`=? WHERE `id`={};'.format(self.workid), ('R',))
         self.conn.commit()
-        print('Will now wait for subprocess to terminate.')
+        syslog.syslog('after writing running state.')
         self.popen.wait(timeout=self.timeout)
         self.__terminate_handler(None, None)
         pass
@@ -176,9 +178,14 @@ class TexWorker():
           record the task as failed.
         """
         syslog.syslog('entering _do_work().')
-        signal.signal(signal.SIGALRM, self.__terminate_handler)
-        signal.signal(signal.SIGTERM, self.__terminate_handler)
-        signal.alarm(self.timeout)
+        try:
+            # XXX: Bugs here: cannot set?
+            signal.signal(signal.SIGALRM, self.__terminate_handler)
+            signal.signal(signal.SIGTERM, self.__terminate_handler)
+            signal.alarm(int(self.timeout))
+        except Exception as e:
+            syslog.syslog(str(e.args))
+        syslog.syslog('entering __startup().')
         self.__startup()
         signal.alarm(0)
         syslog.syslog('successfully finished the work within time.')
@@ -187,9 +194,11 @@ class TexWorker():
     def run(self): 
         # Daemonize and continue the work.
         try:
+            syslog.syslog('before fork...')
             pid = os.fork()
             if pid > 0:
                 # return to flask worker
+                syslog.syslog('Parent process is returning...')
                 return
         except OSError as e:
             syslog.syslog('OSError1!')
@@ -198,12 +207,15 @@ class TexWorker():
         os.setsid()
         os.umask(0)
         try:
+            syslog.syslog('before second fork...')
             pid = os.fork()
             if pid > 0:
+                syslog.syslog('second parent process is exiting...')
                 sys.exit(0)
         except OSError as e:
             syslog.syslog('OSError1!')
             raise
+        syslog.syslog('after second fork. continuing...')
         sys.stdout.flush()
         sys.stderr.flush()
         si = open("/dev/null", 'r')
