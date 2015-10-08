@@ -79,7 +79,7 @@ def ft_api_submit():
     if not request.args.get('renderer') == None:
         renderer = request.args.get('renderer')
     if not request.args.get('timeout') == None:
-        renderer = request.args.get('timeout')
+        timeout = request.args.get('timeout')
     worker = flasktex.texworker.TexWorker(data, renderer=renderer, timeout=timeout)
     worker.run()
     return make_response('ok workid={}'.format(worker.workid), 200)

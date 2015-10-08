@@ -68,7 +68,7 @@ class TexWorker():
         self.rawstring = rawstring # Have to be UTF-8 String.
         assert hasattr(self.rawstring, 'encode')
         self.renderer = renderer
-        self.timeout = timeout
+        self.timeout = int(timeout) # XXX: Have to be integer
         self.conn = sqlite3.connect(path+db)
         self.popen = None
         self.workid = None
@@ -110,13 +110,16 @@ class TexWorker():
         syslog.syslog('after writing input.tex')
 
         # Form the Popen object, start the process, log in SQLite database
-        self.popen = subprocess.Popen([self.renderer, '-no-shell-escape', '-halt-on-error', 'input.tex'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        self.conn.execute('UPDATE `work` SET `status`=? WHERE `id`={};'.format(self.workid), ('R',))
-        self.conn.commit()
-        syslog.syslog('after writing running state.')
-        self.popen.wait(timeout=self.timeout)
-        self.__terminate_handler(None, None)
-        pass
+        try:
+            self.popen = subprocess.Popen([self.renderer, '-no-shell-escape', '-halt-on-error', 'input.tex'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self.conn.execute('UPDATE `work` SET `status`=? WHERE `id`={};'.format(self.workid), ('R',))
+            self.conn.commit()
+            syslog.syslog(str(e.args))
+            syslog.syslog('after writing running state.')
+            self.popen.wait(timeout=self.timeout)
+            self.__terminate_handler(None, None)
+        except Exception as e:
+            syslog.syslog(str(e.args))
 
     def __cleanup(self, success=False):
         c = self.conn.cursor()
@@ -179,10 +182,9 @@ class TexWorker():
         """
         syslog.syslog('entering _do_work().')
         try:
-            # XXX: Bugs here: cannot set?
             signal.signal(signal.SIGALRM, self.__terminate_handler)
             signal.signal(signal.SIGTERM, self.__terminate_handler)
-            signal.alarm(int(self.timeout))
+            signal.alarm(self.timeout)
         except Exception as e:
             syslog.syslog(str(e.args))
         syslog.syslog('entering __startup().')
