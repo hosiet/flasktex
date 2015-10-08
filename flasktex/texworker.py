@@ -111,7 +111,9 @@ class TexWorker():
 
         # Form the Popen object, start the process, log in SQLite database
         try:
-            self.popen = subprocess.Popen([self.renderer, '-no-shell-escape', '-halt-on-error', 'input.tex'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self.popen = subprocess.Popen(['latexmk',
+                '-latex="{renderer} {options} %O %S"'.format(renderer=self.renderer, options='-halt-on-error -no-shell-escape'),
+                'input.tex'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             self.conn.execute('UPDATE `work` SET `status`=? WHERE `id`={};'.format(self.workid), ('R',))
             self.conn.commit()
             syslog.syslog(str(e.args))
