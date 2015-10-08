@@ -109,21 +109,30 @@ class TexWorker():
         f.close()
         syslog.syslog('after writing input.tex')
 
+
         # Form the Popen object, start the process, log in SQLite database
         try:
+            syslog.syslog('Now renderer: {}'.format(self.renderer))
+            # XXX: use xelatex by force
+            self.renderer = "xelatex"
             self.popen = subprocess.Popen(['latexmk',
-                '-latex="{renderer} {options} %O %S"'.format(renderer=self.renderer, options='-halt-on-error -no-shell-escape'),
-                'input.tex'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                '-pdflatex="{} {} %O %S"'.format(self.renderer, '-halt-on-error'),
+                '-xelatex',
+                'input.tex'], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             self.conn.execute('UPDATE `work` SET `status`=? WHERE `id`={};'.format(self.workid), ('R',))
             self.conn.commit()
-            syslog.syslog(str(e.args))
             syslog.syslog('after writing running state.')
-            self.popen.wait(timeout=self.timeout)
+            # XXX: read all the data
+            (stdout_data, stderr_data) = self.popen.communicate(input=None, timeout=self.timeout)
+            syslog.syslog("The stdout_data is: {}.".format(str(stdout_data)))
+            syslog.syslog("The stderr_data is: {}.".format(str(stderr_data)))
             self.__terminate_handler(None, None)
         except Exception as e:
-            syslog.syslog(str(e.args))
+            raise
+            syslog.syslog('Exception Log: '+str(e.args))
 
     def __cleanup(self, success=False):
+        # FIXME: Why it says that the database was closed?
         c = self.conn.cursor()
         c.execute('BEGIN TRANSACTION;')
         if success:
@@ -165,13 +174,15 @@ class TexWorker():
         return
 
     def __terminate_handler(self, signum, stackframe):
-        syslog('entered handler with signum of {}.'.format(signum))
+        syslog.syslog('entered handler with signum of {}.'.format(signum))
         signal.alarm(0)
         if self.popen == None or self.popen.returncode != 0:
             self.__cleanup(success=False)
+            return
             sys.exit(-1)
         else:
             self.__cleanup(success=True)
+            return
             sys.exit(0)
 
     def _do_work(self):
@@ -197,6 +208,9 @@ class TexWorker():
 
     def run(self): 
         # Daemonize and continue the work.
+        # No, TODO we aren't forking due to the issue.
+        self._do_work()
+        return
         try:
             syslog.syslog('before fork...')
             pid = os.fork()
