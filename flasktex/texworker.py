@@ -109,7 +109,6 @@ class TexWorker():
         f.close()
         syslog.syslog('after writing input.tex')
 
-
         # Form the Popen object, start the process, log in SQLite database
         try:
             syslog.syslog('Now renderer: {}'.format(self.renderer))
@@ -122,17 +121,14 @@ class TexWorker():
             self.conn.execute('UPDATE `work` SET `status`=? WHERE `id`={};'.format(self.workid), ('R',))
             self.conn.commit()
             syslog.syslog('after writing running state.')
-            # XXX: read all the data
             (stdout_data, stderr_data) = self.popen.communicate(input=None, timeout=self.timeout)
+            # XXX: here reads all the data
             syslog.syslog("The stdout_data is: {}.".format(str(stdout_data)))
             syslog.syslog("The stderr_data is: {}.".format(str(stderr_data)))
-            self.__terminate_handler(None, None)
         except Exception as e:
             raise
-            syslog.syslog('Exception Log: '+str(e.args))
 
     def __cleanup(self, success=False):
-        # FIXME: Why it says that the database was closed?
         c = self.conn.cursor()
         c.execute('BEGIN TRANSACTION;')
         if success:

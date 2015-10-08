@@ -1,5 +1,6 @@
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
+DROP TABLE `work`;
 CREATE TABLE `work` (
 `id` INTEGER PRIMARY KEY,
 `userid` INTEGER,
