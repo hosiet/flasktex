@@ -37,10 +37,13 @@
 Get Config From config.ini.
 """
 import configparser
+_BUILTIN_CONFIG_PATH_LIST = ['/home/hosiet/src-nosync/github/flasktex/flasktex/',
+        '/var/www/html/flasktex/flasktex/']
 try:
     a = CONFIG_PATH
+    _BUILTIN_CONFIG_PATH_LIST.append(CONFIG_PATH)
 except NameError:
-    CONFIG_PATH = '/home/hosiet/src-nosync/github/flasktex/flasktex/'
+    pass
 
 def ft_getconfig(keystr):
     """
@@ -56,7 +59,16 @@ def ft_getconfig(keystr):
             }
 
     config = configparser.ConfigParser()
-    config.read(CONFIG_PATH+'config.ini')
+    _config_loaded = False
+    for CONFIG_PATH in _BUILTIN_CONFIG_PATH_LIST:
+        try:
+            config.read(CONFIG_PATH+'config.ini')
+            _config_loaded = True
+            break
+        except Exception as e:
+            continue
+    if not _config_loaded:
+        raise Exception('ERR_NO_VALID_CONFIG_FILE')
     assert 'GENERAL' in config
     assert 'RENDER' in config
     # Find keystr in all sections
