@@ -43,6 +43,7 @@ import signal
 import sqlite3
 import time
 import syslog
+import multiprocessing
 from flasktex.config import ft_getconfig
 
 # CONFIG
@@ -91,6 +92,16 @@ class TexWorker():
             raise Exception('WORKER_NOT_FOUND_IN_DATABASE')
         return
 
+    @staticmethod
+    def _close_all_fd():
+        MAXFD = os.sysconf("SC_OPEN_MAX")
+        for i in range(0, MAXFD):
+            try:
+                os.close(i)
+            except:
+                pass
+        return
+
     def __startup(self):
         # Switch to working dir and make a subprocess.Popen object for working
         # After that, wait for timeout.
@@ -118,8 +129,14 @@ class TexWorker():
                 '-pdflatex="{} {} %O %S"'.format(self.renderer, '-halt-on-error'),
                 '-xelatex',
                 'input.tex'], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            self.conn.execute('UPDATE `work` SET `status`=? WHERE `id`={};'.format(self.workid), ('R',))
-            self.conn.commit()
+            syslog.syslog('we have started subporcess.')
+            try:
+                # FIXME: bad conn used
+                self.conn.execute('UPDATE `work` SET `status`=? WHERE `id`={};'.format(self.workid), ('R',))
+                self.conn.commit()
+            except Exception as e:
+                syslog.syslog('Houston, we had a problem.')
+                raise
             syslog.syslog('after writing running state.')
             (stdout_data, stderr_data) = self.popen.communicate(input=None, timeout=self.timeout)
             # XXX: here reads all the data
@@ -162,6 +179,7 @@ class TexWorker():
         self.conn.commit()
         self.conn.close()
         # remove the temp dir
+        syslog.syslog('removing working dir...')
         cwd = os.getcwd()
         assert cwd.split('.')[0] == '/tmp/flasktex'
         os.chdir('..')
@@ -171,14 +189,17 @@ class TexWorker():
 
     def __terminate_handler(self, signum, stackframe):
         syslog.syslog('entered handler with signum of {}.'.format(signum))
-        signal.alarm(0)
+        #signal.alarm(0)
+        syslog.syslog('after signal.')
         if self.popen == None or self.popen.returncode != 0:
+            syslog.syslog('entering __cleanup, not successful.')
             self.__cleanup(success=False)
-            return
+            syslog.syslog('worker exiting with num -1.')
             sys.exit(-1)
         else:
+            syslog.syslog('entering __cleanup, not successful.')
             self.__cleanup(success=True)
-            return
+            syslog.syslog('worker exiting with num 0.')
             sys.exit(0)
 
     def _do_work(self):
@@ -198,21 +219,20 @@ class TexWorker():
             syslog.syslog(str(e.args))
         syslog.syslog('entering __startup().')
         self.__startup()
-        signal.alarm(0)
         syslog.syslog('successfully finished the work within time.')
+        signal.alarm(0)
         self.__cleanup(success=True)
 
     def run(self): 
         # Daemonize and continue the work.
         # No, TODO we aren't forking due to the issue.
-        self._do_work()
-        return
+        #self._do_work()
+        #return
         try:
-            syslog.syslog('before fork...')
+            syslog.syslog('before first fork, pid is {}...'.format(os.getpid()))
             pid = os.fork()
             if pid > 0:
                 # return to flask worker
-                syslog.syslog('Parent process is returning...')
                 return
         except OSError as e:
             syslog.syslog('OSError1!')
@@ -220,27 +240,27 @@ class TexWorker():
         os.chdir("/")
         os.setsid()
         os.umask(0)
+        sys.stdout.flush()
+        sys.stderr.flush()
+        self._close_all_fd();
+
         try:
-            syslog.syslog('before second fork...')
             pid = os.fork()
             if pid > 0:
-                syslog.syslog('second parent process is exiting...')
                 sys.exit(0)
         except OSError as e:
             syslog.syslog('OSError1!')
             raise
-        syslog.syslog('after second fork. continuing...')
-        sys.stdout.flush()
-        sys.stderr.flush()
         si = open("/dev/null", 'r')
         so = open("/dev/null", 'w')
         se = open("/dev/null", 'w')
         os.dup2(si.fileno(), sys.stdin.fileno())
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
-
+        syslog.syslog('after second fork. pid is {}.'.format(os.getpid()))
+        
         # run the work.
-        syslog.syslog('Will now begin the work.')
+        syslog.syslog('This is worker daemon and we will now begin the work.')
         self._do_work()
 
 #  vim: set ts=8 sw=4 tw=0 et :
