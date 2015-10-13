@@ -58,6 +58,30 @@ def ft_webpage_about():
     resp.headers['Content-Type'] = 'application/xhtml+xml'
     return resp
 
+@app.route("/api/submit/xmlfull", methods=['POST'])
+def ft_api_submit_xmlfull():
+    """
+    Receive POST data as a single XML file.
+
+    The structure is as below:
+
+    <?xml version="1.0" ?>
+    <tex timeout="10" renderer="xelatex"><!-- optional arguments -->
+        <text><!-- base64-encoded-data --></text>
+        <bib filename="abc.bib"><!-- base64-encoded-data --></bib>
+    </tex>
+
+    If successfully parsed, a brand new id shall be given out without access control.
+
+    Return: "ok workid=XXX"
+    """
+    try:
+        data = request.get_data().decode('UTF-8')
+    except UnicodeDecodeError as e:
+        abort(400, 'UnicodeDecodeError')
+    # TODO FINISH ME
+    abort(410, "Not implemented")
+
 @app.route("/api/submit", methods=['POST'])
 def ft_api_submit():
     """
