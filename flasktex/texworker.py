@@ -70,18 +70,20 @@ class TexWorker():
         assert hasattr(self.rawstring, 'encode')
         self.renderer = renderer
         self.timeout = int(timeout) # XXX: Have to be integer
-        self.conn = sqlite3.connect(path+db)
+        self.conn_filepath = path + db
         self.popen = None
         self.workid = None
         self.result = None
-        c = self.conn.cursor()
+
+        conn = sqlite3.connect(path+db)
+        c = conn.cursor()
         # Write to be in waiting line
         start_time = str(time.time())
         print('start_time is now {}.'.format(start_time))
         c.execute('INSERT INTO `work` VALUES (?,?,?,?,?,?,?,?);',
                 (None, None, self.rawstring, None, start_time, None,
                     'R', None))
-        self.conn.commit()
+        conn.commit()
         found = False
         for i in c.execute('SELECT `id` FROM `work` WHERE starttime=?', (start_time,)):
             found = True
@@ -90,17 +92,57 @@ class TexWorker():
             break
         if not found:
             raise Exception('WORKER_NOT_FOUND_IN_DATABASE')
+        try:
+            conn.close()
+        except Exception:
+            pass
         return
 
     @staticmethod
-    def _close_all_fd():
+    def daemonize():
+        """
+        Daemonize with special treatments.
+
+        If return false, we are still in original process.
+        If return true, we are in the daemon process.
+        """
+        syslog.syslog('Beginning to daemonize...')
+        try:
+            pid = os.fork()
+            if pid > 0:
+                return False # return to flask worker
+        except OSError as e:
+            syslog.syslog('OSError1!')
+            raise
+        os.chdir("/")
+        os.setsid()
+        os.umask(0)
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        # Closing all opened file descriptors
         MAXFD = os.sysconf("SC_OPEN_MAX")
         for i in range(0, MAXFD):
             try:
                 os.close(i)
             except:
                 pass
-        return
+
+        try:
+            pid = os.fork()
+            if pid > 0:
+                sys.exit(0)
+        except OSError as e:
+            syslog.syslog('OSError2!')
+            raise
+        si = open("/dev/null", 'r')
+        so = open("/dev/null", 'w')
+        se = open("/dev/null", 'w')
+        os.dup2(si.fileno(), sys.stdin.fileno())
+        os.dup2(so.fileno(), sys.stdout.fileno())
+        os.dup2(se.fileno(), sys.stderr.fileno())
+        syslog.syslog('daemonize finished. pid is {}.'.format(os.getpid()))
+        return True
 
     def __startup(self):
         # Switch to working dir and make a subprocess.Popen object for working
@@ -109,8 +151,9 @@ class TexWorker():
         os.chdir("/tmp/")
         tempdir = None
         try:
-            tempdir = subprocess.check_output(['mktemp', '-d', 'flasktex.XXXXXXXXXX'], timeout=2).decode('UTF-8').strip()
+            tempdir = subprocess.check_output(['mktemp', '-d', 'flasktex.XXXXXXXXXX'], timeout=3).decode('UTF-8').strip()
         except subprocess.TimeoutExpired:
+            syslog.syslog('Exception: subprocess.TimeoutExpired.')
             raise
         os.chdir("./{}/".format(tempdir))
 
@@ -131,9 +174,10 @@ class TexWorker():
                 'input.tex'], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             syslog.syslog('we have started subporcess.')
             try:
-                # FIXME: bad conn used
-                self.conn.execute('UPDATE `work` SET `status`=? WHERE `id`={};'.format(self.workid), ('R',))
-                self.conn.commit()
+                conn = sqlite3.connect(self.conn_filepath)
+                conn.execute('UPDATE `work` SET `status`=? WHERE `id`={};'.format(self.workid), ('R',))
+                conn.commit()
+                conn.close()
             except Exception as e:
                 syslog.syslog('Houston, we had a problem.')
                 raise
@@ -146,7 +190,8 @@ class TexWorker():
             raise
 
     def __cleanup(self, success=False):
-        c = self.conn.cursor()
+        conn = sqlite3.connect(self.conn_filepath)
+        c = conn.cursor()
         c.execute('BEGIN TRANSACTION;')
         if success:
             # write pdf and status into database
@@ -176,8 +221,8 @@ class TexWorker():
                 (f.read(), str(time.time())))
 
         # close database connection
-        self.conn.commit()
-        self.conn.close()
+        conn.commit()
+        conn.close()
         # remove the temp dir
         syslog.syslog('removing working dir...')
         cwd = os.getcwd()
@@ -188,8 +233,12 @@ class TexWorker():
         return
 
     def __terminate_handler(self, signum, stackframe):
+        """
+        The final method to be called, then do sys.exit().
+
+        """
         syslog.syslog('entered handler with signum of {}.'.format(signum))
-        #signal.alarm(0)
+        signal.alarm(0)
         syslog.syslog('after signal.')
         if self.popen == None or self.popen.returncode != 0:
             syslog.syslog('entering __cleanup, not successful.')
@@ -204,6 +253,8 @@ class TexWorker():
 
     def _do_work(self):
         """
+        The uppermost method to finish TeXWork.
+
         * Use SIGALRM to set timeout.
 
           If SIGALRM is received, consider that the worker
@@ -217,50 +268,27 @@ class TexWorker():
             signal.alarm(self.timeout)
         except Exception as e:
             syslog.syslog(str(e.args))
-        syslog.syslog('entering __startup().')
         self.__startup()
         syslog.syslog('successfully finished the work within time.')
         signal.alarm(0)
         self.__cleanup(success=True)
 
     def run(self): 
-        # Daemonize and continue the work.
-        # No, TODO we aren't forking due to the issue.
-        #self._do_work()
-        #return
-        try:
-            syslog.syslog('before first fork, pid is {}...'.format(os.getpid()))
-            pid = os.fork()
-            if pid > 0:
-                # return to flask worker
-                return
-        except OSError as e:
-            syslog.syslog('OSError1!')
-            raise
-        os.chdir("/")
-        os.setsid()
-        os.umask(0)
-        sys.stdout.flush()
-        sys.stderr.flush()
-        self._close_all_fd();
+        """
+        Start the TeXWorker in a daemonized process.
 
-        try:
-            pid = os.fork()
-            if pid > 0:
-                sys.exit(0)
-        except OSError as e:
-            syslog.syslog('OSError1!')
-            raise
-        si = open("/dev/null", 'r')
-        so = open("/dev/null", 'w')
-        se = open("/dev/null", 'w')
-        os.dup2(si.fileno(), sys.stdin.fileno())
-        os.dup2(so.fileno(), sys.stdout.fileno())
-        os.dup2(se.fileno(), sys.stderr.fileno())
-        syslog.syslog('after second fork. pid is {}.'.format(os.getpid()))
+        Using the twice-fork magic.
+        Calling this method will return immediately in original process.
+        """
+        # Daemonize and continue the work.
+        if not self.daemonize():
+            return
         
         # run the work.
         syslog.syslog('This is worker daemon and we will now begin the work.')
         self._do_work()
+
+        # shall never reach.
+        return 
 
 #  vim: set ts=8 sw=4 tw=0 et :

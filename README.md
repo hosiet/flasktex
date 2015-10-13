@@ -5,6 +5,26 @@
 
 Read the code for details.
 
+### Flask routes
+
+#### `/about`
+
+Show the about page.
+
+#### `/api/status`
+
+Show all status of all the works.
+
+#### `/api/submit` (POST)
+
+Post the plain text as LaTeX source and start the work.
+
+#### `/api/obtain/<number>.pdf`
+
+Get the output pdf, if finished.
+
+### Start up
+
 #### Run as python module
 Simply run `import flasktex`
 

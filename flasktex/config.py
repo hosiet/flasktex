@@ -38,8 +38,12 @@ Get Config From config.ini.
 """
 import configparser
 import syslog
-_BUILTIN_CONFIG_PATH_LIST = ['/home/hosiet/src-nosync/github/flasktex/flasktex/',
-        '/var/www/html/flasktex/flasktex/']
+
+_BUILTIN_CONFIG_PATH_LIST = [ \
+        '/home/hosiet/src-nosync/github/flasktex/flasktex/', \
+        '/var/www/html/flasktex/flasktex/', \
+        '/etc/flasktex/' \
+        ]
 try:
     a = CONFIG_PATH
     _BUILTIN_CONFIG_PATH_LIST.append(CONFIG_PATH)

@@ -105,7 +105,7 @@ def ft_api_status():
     resp.data = render_template('status.xml', result=result)
     return resp
 
-@app.route("/api/obtain/<int:work_id>")
+@app.route("/api/obtain/<int:work_id>.pdf")
 def ft_api_obtain(work_id):
     # First, open database conn and find the record
     conn = ft_db_connect_sqlite()
