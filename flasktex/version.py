@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# __init__.py -- init for flasktex package
+# version.py -- save package version
 #
 # This file is part of flasktex.
 #
@@ -33,14 +33,6 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from flask import Flask
-app = Flask(__name__)
-
-import flasktex.views
-from flasktex.config import ft_getconfig
-import flasktex.texworker
-import flasktex.version
-
-__version__ = flasktex.version.__version__
+__version__ = '0.0.1'
 
 #  vim: set ts=8 sw=4 tw=0 et :
