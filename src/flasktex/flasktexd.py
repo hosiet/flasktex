@@ -37,16 +37,28 @@
 Standalone Daemon for Flasktex
 """
 import os, sys
+import daemon
+import flasktex
+import syslog
 
-def daemon_startup():
+def ft_daemon_startup():
     """
     Entry point for flasktexd daemon.
+
+    Daemonize would preserve stdout and stderr to work with systemd.
     """
     print(sys.argv)
-    sys.exit(0)
+    print(flasktex.__version__)
+    syslog.syslog('I will be a daemon.')
+    with daemon.DaemonContext(
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+        ):
+        syslog.syslog('I am a daemon now.')
+    syslog.syslog('I am leaving.')
 
 if __name__ == "__main__":
-    daemon_startup()
+    ft_daemon_startup()
     pass
 
 #  vim: set ts=8 sw=4 tw=0 et :

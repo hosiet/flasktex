@@ -9,7 +9,7 @@ setup(
         name = "flasktex",
         version = flasktex.__version__,
         packages = find_packages(),
-        install_requires = ['flask'],
+        install_requires = ['flask', 'python-daemon'],
         author = "Boyuan Yang",
         author_email = "073plan@gmail.com",
         description = "LaTeX building with flask",
@@ -18,7 +18,7 @@ setup(
         url = "https://github.com/hosiet/flasktex",
         entry_points = {
             'console_scripts': [
-                'flasktexd = flasktex.flasktexd:daemon_startup',
+                'flasktexd = flasktex.flasktexd:ft_daemon_startup',
             ]
         },
 )
