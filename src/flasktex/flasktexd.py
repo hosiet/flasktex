@@ -57,6 +57,21 @@ def ft_daemon_startup():
         syslog.syslog('I am a daemon now.')
     syslog.syslog('I am leaving.')
 
+def ft_daemon_mainloop():
+    """
+    Main Loop for processing.
+
+    Consider using:
+    * `/var/spool/flasktex/` for job queue
+    * `/var/run/flasktex/` for daemon lock and wakeup pipe
+
+    In the spool directory, all the jobs should be named as
+    `$UNIX_TIME.$MILLISECOND` so as to be recognized properly.
+    the standard version is the output of time.time().
+
+    """
+    # TODO: use var to replace hardcoded path for flexibility
+
 if __name__ == "__main__":
     ft_daemon_startup()
     pass
