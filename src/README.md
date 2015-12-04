@@ -36,11 +36,9 @@ e.g. (/flasktex)/api/1.0/
     <request>
         <worker>xelatex</worker>
         <timeout>60</timeout>
+        <entryfile>main.tex</entryfile>
     </request>
-    <file>
-        <name>abc.tex</name>
-        <content type="base64">BASE64 ENCODED TEXT</content>
-    </file>
+    <bundle>BASE64_STR</bundle>
     <!-- 可能有多个文件 -->
 </xmlbundle>
 ```
