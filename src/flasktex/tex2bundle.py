@@ -5,7 +5,6 @@
 import sys, os
 import xml
 import xml.dom as dom
-import xml.dom.minidom as minidom
 
 def ft_dir_to_b64(path):
     """gzip given dir, then base64 it.
