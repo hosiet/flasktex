@@ -1,3 +1,7 @@
+"""Flasktex API 1.0 views
+"""
+
+from flask import request
 from flasktex import app
 
 def ft_api_route_prefix(version_string):
