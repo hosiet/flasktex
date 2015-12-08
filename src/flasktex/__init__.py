@@ -6,6 +6,7 @@ __name__ = 'flasktex_app'
 from flask import Flask
 app = Flask(__name__)
 
+import flasktex.config
 import flasktex.views
 import flasktex.texrequest
 import flasktex.api_1_0
