@@ -13,9 +13,13 @@ def ft_dir_to_b64(path):
     """
     import tarfile, tempfile, base64
 
+    # XXX: No good implementation
+    pwd = os.getcwd()
     fileobj = tempfile.SpooledTemporaryFile(mode='w+b')
-    tar = tarfile.open(mode="w:gz", fileobj=fileobj)
-    tar.add(path)
+    tar = tarfile.open(mode="w:gz", format=tarfile.PAX_FORMAT, fileobj=fileobj)
+    os.chdir(path)
+    tar.add(".")
+    os.chdir(pwd)
     tar.close()
     fileobj.seek(0)
 

@@ -1,3 +1,4 @@
+"""This is the docstring of flasktex."""
 __version__ = "0.0.90"
 
 # WORKAROUND FOR STRANGE __name__

@@ -21,6 +21,8 @@ e.g. (/flasktex)/api/1.0/
 返回的JSON的第一个`"success":`表示该请求的正常与否，后面的
 `"status_string"`是对请求状态的说明性文字。
 
+注意：Bundle 压缩文件格式为`tar.gz`，且使用`PAX tar`.
+
 ## 内容提交
 
 ### XMLBUNDLE提交
