@@ -25,7 +25,7 @@ def ft_db_close_conn_sqlite(conn):
 def ft_db_setup_record_sqlite(texrequest, conn):
     """Setup a new record described by texrequest.
 
-    Will return the id of established record.
+    Will return the id of established record as int.
     """
     import time
     c = None
@@ -33,16 +33,25 @@ def ft_db_setup_record_sqlite(texrequest, conn):
         c = conn.cursor()
     except:
         raise
-    c.execute('INSERT INTO `work` (retrieve_id, targz_data, start_time, status) VALUES (?, ?, ?, ?, ?)',
+    var_start_time = time.time()
+    c.execute('INSERT INTO `work` (retrieve_id, targz_data, entryfile, start_time, status) VALUES (?, ?, ?, ?, ?)',
             (
                 None, # FIXME
                 texrequest.targz_data,
-                time.time(),
+                str(texrequest.entryfile),
+                str(var_start_time),
                 'INIT',
             )
         )
-    #FIXME: FINISH ID
-    return None
+    fetched_data = c.execute("SELECT (`id`) FROM `work` WHERE `start_time`=?", (str(var_start_time),)).fetchall()
+    assert type(fetched_data) == type([]) # TODO: REMOVE IT
+    assert len(fetched_data) == 1
+    return int(str(fetched_data[0][0]))
+
+def ft_db_record_set_status_sqlite(conn, db_id, status_str):
+    c = conn.cursor()
+    c.execute("UPDATE `work` SET `status`=? WHERE `id`=?", (status_str, db_id))
+    return
 
 def ft_db_init_conn(path:str=None):
     """Meta function to init database connection.
@@ -70,6 +79,15 @@ def ft_db_setup_record(texrequest, db_object, db_type='SQLITE'):
     ret_value = None
     if db_type == 'SQLITE':
         ret_value = ft_db_setup_record_sqlite(texrequest, db_object)
+    else:
+        raise Exception('ERR_DB_NOT_IMPLEMENTED')
+
+    return ret_value
+
+def ft_db_record_set_status(db_object, db_id, status_str:str, db_type='SQLITE'):
+    ret_value = None
+    if db_type == 'SQLITE':
+        ret_value = ft_db_record_set_status_sqlite(db_object, db_id, status_str)
     else:
         raise Exception('ERR_DB_NOT_IMPLEMENTED')
 

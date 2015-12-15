@@ -17,8 +17,8 @@ class TeXRequest():
         return self.conn
 
     def set_status(self, status_str: str):
+        flasktex.db.ft_db_record_set_status(self.conn, self.id, status_str)
         self.__status = status_str
-        # TODO SYNC STATUS WITH 
         return
 
     def get_status(self):
@@ -42,15 +42,19 @@ class TeXRequest():
                 timeout: int = 60,
                 entryfile: str = "main.tex",
             ):
-        def _get_new_id(conn):
         self.targz_data = targz_data
         self.worker = worker
         self.timeout = timeout
         self.entryfile = entryfile
         self.conn = None;
+        # Open Database Connection
         self._reopen_db_conn();
+        assert self.conn != None
+        # Write initial information into database
         self.id = flasktex.db.ft_db_setup_record(self, self.conn)
-        #self.set_status('INIT') # NOT NEEDED
+        assert type(self.id) == type(1)
+        self.__status = 'INIT'
+        return
 
     def process(self):
         if self.get_status() != 'INIT': # already started

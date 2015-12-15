@@ -9,6 +9,7 @@ BEGIN TRANSACTION;
         `id` INTEGER PRIMARY KEY,
         `retrieve_id` TEXT NOT NULL,
         `targz_data` BLOB NOT NULL,
+        `entryfile` TEXT NOT NULL,
         `output` BLOB,
         `start_time` TEXT NOT NULL, -- OUTPUT OF Py: time.time()
         `stop_time` TEXT,
