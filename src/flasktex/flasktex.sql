@@ -13,6 +13,6 @@ BEGIN TRANSACTION;
         `output` BLOB,
         `start_time` TEXT NOT NULL, -- OUTPUT OF Py: time.time()
         `stop_time` TEXT,
-        `status` TEXT NOT NULL, -- 'INIT', 'RUNNING', 'FAILURE', 'SUCCESS', 'DELETED'
+        `status` TEXT NOT NULL, -- 'INIT', 'STARTING', 'RUNNING', 'FAILURE', 'SUCCESS', 'DELETED'
         `log` TEXT);
 COMMIT;

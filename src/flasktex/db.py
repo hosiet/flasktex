@@ -36,7 +36,7 @@ def ft_db_setup_record_sqlite(texrequest, conn):
     var_start_time = time.time()
     c.execute('INSERT INTO `work` (retrieve_id, targz_data, entryfile, start_time, status) VALUES (?, ?, ?, ?, ?)',
             (
-                None, # FIXME
+                hash(var_start_time), # FIXME
                 texrequest.targz_data,
                 str(texrequest.entryfile),
                 str(var_start_time),
@@ -46,11 +46,19 @@ def ft_db_setup_record_sqlite(texrequest, conn):
     fetched_data = c.execute("SELECT (`id`) FROM `work` WHERE `start_time`=?", (str(var_start_time),)).fetchall()
     assert type(fetched_data) == type([]) # TODO: REMOVE IT
     assert len(fetched_data) == 1
+    conn.commit()
     return int(str(fetched_data[0][0]))
+
+def ft_db_record_get_status_sqlite(conn, db_id):
+    c = conn.cursor()
+    result = c.execute("SELECT (`status`) FROM `work` WHERE `id`=?", (db_id,)).fetchall()
+    assert len(result) == 1
+    return str(result[0][0])
 
 def ft_db_record_set_status_sqlite(conn, db_id, status_str):
     c = conn.cursor()
     c.execute("UPDATE `work` SET `status`=? WHERE `id`=?", (status_str, db_id))
+    conn.commit()
     return
 
 def ft_db_init_conn(path:str=None):
@@ -88,6 +96,15 @@ def ft_db_record_set_status(db_object, db_id, status_str:str, db_type='SQLITE'):
     ret_value = None
     if db_type == 'SQLITE':
         ret_value = ft_db_record_set_status_sqlite(db_object, db_id, status_str)
+    else:
+        raise Exception('ERR_DB_NOT_IMPLEMENTED')
+
+    return ret_value
+
+def ft_db_record_get_status(db_object, db_id, db_type='SQLITE'):
+    ret_value = None
+    if db_type == 'SQLITE':
+        ret_value = ft_db_record_get_status_sqlite(db_object, db_id)
     else:
         raise Exception('ERR_DB_NOT_IMPLEMENTED')
 

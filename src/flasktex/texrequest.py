@@ -23,6 +23,7 @@ class TeXRequest():
 
     def get_status(self):
         # TODO OBTAIN STATUS FROM DB
+        self.__status = flasktex.db.ft_db_record_get_status(self.conn, self.id)
         return self.__status
 
     def is_successful(self):
@@ -30,18 +31,19 @@ class TeXRequest():
 
 
     def __init__(
-        """Init the object.
-
-        Meanwhile, write into the database.
-
-        If success, work ID will be set. Otherwise raise an exception.
-        """
                 self,
                 targz_data: bytes,
                 worker: str = "xelatex",
                 timeout: int = 60,
                 entryfile: str = "main.tex",
             ):
+        """Init the object.
+
+        Meanwhile, write into the database.
+
+        If success, work ID will be set. Otherwise raise an exception.
+        """
+
         self.targz_data = targz_data
         self.worker = worker
         self.timeout = timeout
