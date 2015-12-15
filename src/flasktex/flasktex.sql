@@ -1,4 +1,4 @@
-PRAGMA foreign_keys=OFF;
+PRAGMA foreign_keys=ON;
 BEGIN TRANSACTION;
     DROP TABLE IF EXISTS `metadata`;
     CREATE TABLE `metadata` (
@@ -12,6 +12,6 @@ BEGIN TRANSACTION;
         `output` BLOB,
         `start_time` TEXT NOT NULL, -- OUTPUT OF Py: time.time()
         `stop_time` TEXT,
-        `status` TEXT NOT NULL,
+        `status` TEXT NOT NULL, -- 'INIT', 'RUNNING', 'FAILURE', 'SUCCESS', 'DELETED'
         `log` TEXT);
 COMMIT;
