@@ -2,7 +2,6 @@
 """
 
 import flasktex.db
-import sqlite3
 import os
 import sys
 import syslog
@@ -87,6 +86,17 @@ class TeXRequest():
             return True
         else:
             return False
+
+    def __goto_success(self, log_str, pdf_data):
+        """Afterwork of success.
+
+        Will write the database and return / terminate.
+        """
+        # XXX: Test the wrapper
+        self.set_status('SUCCESS')
+        flasktex.db.ft_db_record_success(self.conn, self.id, log_str, pdf_data)
+        sys.exit(0)
+        return
 
     def __goto_fail(self, fail_str):
         """Set job state into fail.
@@ -233,7 +243,10 @@ class TeXRequest():
                 f = open(tmpdirname+'/'+'output.pdf', 'rb')
                 pdf_data = f.read()
                 f.close()
+                # XXX: potential bug
+            # Write the database, the end
+            self.__goto_success(log_str, pdf_data)
 
-
-        # TODO FIXME
-        pass
+        # Practically, Never should reach
+        syslog.syslog('OH NO YOU REACHED TO THE END OF process!')
+        return
