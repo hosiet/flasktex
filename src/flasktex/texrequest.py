@@ -88,6 +88,16 @@ class TeXRequest():
         else:
             return False
 
+    def __goto_fail(self, fail_str):
+        """Set job state into fail.
+
+        With the argument of fail_str to explain reason.
+        """
+        self.set_status('FAILURE'+'_'+str(fail_str))
+        if self.forked:
+            # Terminate
+            sys.exit(1)
+
     def __init__(
                 self,
                 targz_data,
@@ -102,6 +112,8 @@ class TeXRequest():
         If success, work ID will be set. Otherwise raise an exception.
         """
 
+        self.forked = False
+        self.status_string = None
         self.targz_data = targz_data
         self.worker = worker
         self.timeout = timeout
@@ -148,9 +160,10 @@ class TeXRequest():
             self._reopen_db_conn()
             return (True, '')
         # We are in daemon now, continue
+        self.forked = True
         self._reopen_db_conn()
 
-        # 2: obtain tempdir
+        # 2,3: obtain tempdir and extract file
         with tempfile.TemporaryDirectory(prefix='flasktex.') as tmpdirname:
             # WARNING: Python 3.2+ only
             fileobj = tempfile.SpooledTemporaryFile(mode="w+b")
@@ -161,6 +174,16 @@ class TeXRequest():
                     format=tarfile.PAX_FORMAT,
                     fileobj=fileobj)
             tar.extractall(path=tmpdirname+"/.")
+
+            # 3.5: Check the existance of main tex file
+            try:
+                f = open(tmpdirname+'/'+self.entryfile, 'r')
+                f.close()
+            except:
+                # TODO immediate fail
+                self.__goto_fail('NO_ENTRYFILE_FOUND')
+
+            # 4: Start subprocess, using latexmk
 
         # TODO FIXME
 
