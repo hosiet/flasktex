@@ -5,10 +5,10 @@ import flasktex.db
 import sqlite3
 import os
 import sys
-import signal
 import syslog
 import tempfile
 import tarfile
+import subprocess
 
 
 class TeXRequest():
@@ -119,6 +119,7 @@ class TeXRequest():
         self.timeout = timeout
         self.entryfile = entryfile
         self.conn = None
+        self.popen = None  # Subprocess worker
         # Open Database Connection
         self._reopen_db_conn()
         assert self.conn is not None
@@ -180,11 +181,59 @@ class TeXRequest():
                 f = open(tmpdirname+'/'+self.entryfile, 'r')
                 f.close()
             except:
-                # TODO immediate fail
                 self.__goto_fail('NO_ENTRYFILE_FOUND')
 
             # 4: Start subprocess, using latexmk
+            self.popen = subprocess.Popen([
+                    'latexmk',
+                    '-bibtex-cond',
+                    '-cd',
+                    '-jobname={}'.format('output'),
+                    '-pdf',
+                    '-pdflatex="{} {} %O %S"'.format(
+                            self.worker,
+                            '-halt-on-error'),
+                    # FIXME: using xelatex by force
+                    '-xelatex',
+                    '{}/{}'.format(tmpdirname, self.entryfile)],
+                    cwd=tmpdirname,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE)
+            syslog.syslog('Working process started, workid:{}, pid:{}.'.format(
+                    self.id, self.popen.pid))
+            (stdout_data, stderr_data) = self.popen.communicate(
+                    input=None, timeout=self.timeout)
+            # XXX: All data were read here
+            assert isinstance(stdout_data, bytes)
+            assert isinstance(stderr_data, bytes)
+            log_str = u''
+            log_str += '===FLASKTEX_STDOUT_DATA===\n'
+            log_str += stdout_data.decode('UTF-8') + '\n'
+            log_str += '===FLASKTEX_STDERR_DATA===\n'
+            log_str += stderr_data.decode('UTF-8') + '\n'
+
+            # 5: Check status and write database
+            return_code = self.popen.returncode
+            if return_code is None:
+                # TIME LIMIT EXCEEDED
+                self.popen.terminate()
+                self.__goto_fail('TIME_LIMIT_EXCEEDED')
+            # Collect log
+            try:
+                log_str += '===LOG_DATA===\n'
+                flog = open(tmpdirname+'/'+'output.log', 'r', encoding='UTF-8')
+                log_str += flog.read()
+                flog.close()
+            except:
+                pass
+            pdf_data = None
+            if return_code is 0:
+                # Work is successful, collect pdf
+                f = open(tmpdirname+'/'+'output.pdf', 'rb')
+                pdf_data = f.read()
+                f.close()
+
 
         # TODO FIXME
-
         pass
