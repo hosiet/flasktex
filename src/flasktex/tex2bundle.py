@@ -2,16 +2,20 @@
 """make files in given dir into xml bundle string.
 """
 
-import sys, os
+import sys
+import os
 import xml
 import xml.dom as dom
+
 
 def ft_dir_to_b64(path):
     """gzip given dir, then base64 it.
 
     return the base64-encoded bytes.
     """
-    import tarfile, tempfile, base64
+    import tarfile
+    import tempfile
+    import base64
 
     # XXX: No good implementation
     pwd = os.getcwd()
@@ -25,13 +29,13 @@ def ft_dir_to_b64(path):
 
     return base64.b64encode(fileobj.read())
 
-def _ft_gen_texbundle_xml(b64bytes, entryfile="main.tex", worker='xelatex', timeout=60):
+
+def _ft_gen_texbundle_xml(
+        b64bytes, entryfile="main.tex", worker='xelatex', timeout=60):
     """Generate xmlbundle as in api v1.0.
 
     return str object.
     """
-    import xml
-    import xml.dom as dom
 
     impl = dom.getDOMImplementation()
     doc = impl.createDocument(None, "xmlbundle", None)
@@ -51,6 +55,7 @@ def _ft_gen_texbundle_xml(b64bytes, entryfile="main.tex", worker='xelatex', time
     doc.documentElement.appendChild(bundleNode)
 
     return doc.toxml()
+
 
 if __name__ == "__main__":
     if not len(sys.argv) == 2:
