@@ -3,8 +3,13 @@
 
 import flasktex.db
 import sqlite3
-import os, sys, signal, syslog
-import tempfile, tarfile
+import os
+import sys
+import signal
+import syslog
+import tempfile
+import tarfile
+
 
 class TeXRequest():
 
@@ -23,7 +28,7 @@ class TeXRequest():
         try:
             pid = os.fork()
             if pid > 0:
-                return False # return to Flask process
+                return False  # return to Flask process
         except OSError as e:
             syslog.syslog('OSError1! {}'.format(str(e)))
             raise
@@ -59,7 +64,7 @@ class TeXRequest():
         return True
 
     def _reopen_db_conn(self):
-        if self.conn != None:
+        if self.conn is not None:
             try:
                 self.conn.close()
             except:
@@ -68,26 +73,27 @@ class TeXRequest():
         self.conn = flasktex.db.ft_db_init_conn()
         return self.conn
 
-    def set_status(self, status_str: str):
+    def set_status(self, status_str):
         flasktex.db.ft_db_record_set_status(self.conn, self.id, status_str)
         self.__status = status_str
         return
 
     def get_status(self):
-        # TODO OBTAIN STATUS FROM DB
         self.__status = flasktex.db.ft_db_record_get_status(self.conn, self.id)
         return self.__status
 
     def is_successful(self):
-        pass
-
+        if self.get_status() == 'SUCCESS':
+            return True
+        else:
+            return False
 
     def __init__(
                 self,
-                targz_data: bytes,
-                worker: str = "xelatex",
-                timeout: int = 60,
-                entryfile: str = "main.tex",
+                targz_data,
+                worker="xelatex",
+                timeout=60,
+                entryfile="main.tex",
             ):
         """Init the object.
 
@@ -100,13 +106,13 @@ class TeXRequest():
         self.worker = worker
         self.timeout = timeout
         self.entryfile = entryfile
-        self.conn = None;
+        self.conn = None
         # Open Database Connection
-        self._reopen_db_conn();
-        assert self.conn != None
+        self._reopen_db_conn()
+        assert self.conn is not None
         # Write initial information into database
         self.id = flasktex.db.ft_db_setup_record(self, self.conn)
-        assert type(self.id) == type(1)
+        assert isinstance(self.id, int)
         self.__status = 'INIT'
         return
 
@@ -130,30 +136,32 @@ class TeXRequest():
         """
 
         # Set status to 'STARTING'
-        if self.get_status() != 'INIT': # already started
+        if self.get_status() != 'INIT':  # already started
             return (False, 'ERR_ALREADY_STARTED')
         self.set_status('STARTING')
 
-        #1: Daemonize
+        # 1: Daemonize
         self.conn.close()
         self.conn = None
         result = self.daemonize()
-        if result == False: # Not forked
+        if result is False:  # Not forked
             self._reopen_db_conn()
             return (True, '')
         # We are in daemon now, continue
         self._reopen_db_conn()
 
-        #2: obtain tempdir
+        # 2: obtain tempdir
         with tempfile.TemporaryDirectory(prefix='flasktex.') as tmpdirname:
             # WARNING: Python 3.2+ only
             fileobj = tempfile.SpooledTemporaryFile(mode="w+b")
             fileobj.write(self.targz_data)
             fileobj.seek(0)
-            tar = tarfile.open(mode="r:gz", format=tarfile.PAX_FORMAT, fileobj = fileobj)
+            tar = tarfile.open(
+                    mode="r:gz",
+                    format=tarfile.PAX_FORMAT,
+                    fileobj=fileobj)
             tar.extractall(path=tmpdirname+"/.")
 
         # TODO FIXME
 
         pass
-
