@@ -47,11 +47,16 @@ e.g. (/flasktex)/api/1.0/
 
 #### 返回格式
 
+注：应当返回XML.
+
+如果出错，返回标准500页面？（暂定）
+
 ```
 {
     "status": true,
     "status_string": "success",
-    "worker_id": 5/* only when success */
+    "worker_id": 5,/* only when success */
+    "retrieve_id": asdv9324
 }
 ```
 

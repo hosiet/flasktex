@@ -1,9 +1,8 @@
 """Flasktex API 1.0 views
 """
 
-from flask import request
-from flasktex import app
-from flasktex import bundle2tex
+from flask import request, abort
+from flasktex import app, bundle2tex
 
 
 def ft_api_route_prefix(version_string):
@@ -18,5 +17,18 @@ def ft_api_submit_xmlbundle():
         abort(400, 'UnicodeDecodeError')
     texrequest = bundle2tex.ft_xmlbundle_to_request(data)
     texrequest.process()
-        
-    return "started"
+
+    # FIXME: use xml module and set proper Content-Type
+    ret_string = """<?xml version="1.0" encoding="UTF-8" ?>
+<return>
+    <status>true</status>
+    <status_string>{}</status_string>
+    <worker_id>{}</worker_id>
+    <retrieve_id>{}</retrieve_id>
+</return>""".format(
+            str(texrequest.get_status()),
+            str(texrequest.id),
+            str(texrequest.retrieve_id),
+            )
+
+    return ret_string

@@ -36,11 +36,12 @@ def ft_db_setup_record_sqlite(texrequest, conn):
     except:
         raise
     var_start_time = time.time()
+    texrequest.retrieve_id = hash(var_start_time)
     c.execute('INSERT INTO `work` '
               '(retrieve_id, targz_data, entryfile, start_time, status) '
               'VALUES (?, ?, ?, ?, ?)',
               (
-                hash(var_start_time),  # FIXME
+                texrequest.retrieve_id,  # FIXME
                 texrequest.targz_data,
                 str(texrequest.entryfile),
                 str(var_start_time),
