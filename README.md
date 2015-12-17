@@ -1,42 +1,14 @@
 # flasktex
-- Compile and get PDF online by Flask and (Xe)LaTeX
+- Compile and get PDF online through Flask and (Xe)LaTeX
+
+## NOTE
+
+This project is still under heavy development. The core code may be modified
+or completely rewritten in the future. Use it at your own risk.
 
 ## Usage
 
 Read the code for details.
-
-### Flask routes
-
-#### `/about`
-
-Show the about page.
-
-#### `/api/status`
-
-Show all status of all the works.
-
-#### `/api/submit` (POST)
-
-Post the plain text as LaTeX source and start the work.
-
-#### `/api/obtain/<number>.pdf`
-
-Get the output pdf, if finished.
-
-### Start up
-
-#### Run as python module
-Simply run `import flasktex`
-
-#### Run as standalone HTTP Server for debug
-`python3 debug.py`
-
-#### Run with uwsgi support
-set module to mainapp and runnable to `app`.
-
-## Useful latex arguments
-
-* `halt-on-error` Exit with error code immediately after error happened.
 
 * * *
 
