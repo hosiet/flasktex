@@ -2,7 +2,7 @@
 __version__ = "0.0.90"
 
 # WORKAROUND FOR STRANGE __name__
-__name__ = 'flasktex_app'
+#__name__ = 'flasktex_app'
 
 from flask import Flask
 app = Flask(__name__)

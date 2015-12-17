@@ -2,7 +2,8 @@
 
 from flasktex.texrequest import TeXRequest
 
-def ft_xmlbundle_to_request(xmlbundle: str) -> TeXRequest:
+
+def ft_xmlbundle_to_request(xmlbundle) -> TeXRequest:
     """Put xmlbundle to standard process request.
     
     xmlbundle should be str-typed.

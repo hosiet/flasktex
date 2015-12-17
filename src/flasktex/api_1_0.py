@@ -3,6 +3,7 @@
 
 from flask import request
 from flasktex import app
+from flasktex import bundle2tex
 
 
 def ft_api_route_prefix(version_string):
@@ -15,5 +16,7 @@ def ft_api_submit_xmlbundle():
         data = request.get_data().decode('UTF-8')
     except UnicodeDecodeError as e:
         abort(400, 'UnicodeDecodeError')
+    texrequest = bundle2tex.ft_xmlbundle_to_request(data)
+    texrequest.process()
         
-    return "hello"
+    return "started"
