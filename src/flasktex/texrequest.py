@@ -24,6 +24,8 @@ class TeXRequest():
         If return True, we are in daemon process.
         """
         syslog.syslog('Begin Daemonize...')
+        # FIXME: do fork after debug
+        return True
         try:
             pid = os.fork()
             if pid > 0:
