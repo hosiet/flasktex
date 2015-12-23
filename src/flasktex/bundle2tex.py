@@ -3,9 +3,15 @@
 from flasktex.texrequest import TeXRequest
 
 
+FT_WORKER_DEFAULT = 'xelatex'
+FT_TIMEOUT_DEFAULT = 60
+FT_ENTRYFILE_DEFAULT = 'main.tex'
+
+
 def ft_xmlbundle_to_request(xmlbundle) -> TeXRequest:
-    """Put xmlbundle to standard process request.
-    
+    """
+    Convert xmlbundle to standard process request.
+
     xmlbundle should be str-typed.
 
     return: flasktex.TeXRequest instance.
@@ -15,10 +21,11 @@ def ft_xmlbundle_to_request(xmlbundle) -> TeXRequest:
     import xml.dom.minidom as minidom
     import base64
 
-    worker = 'xelatex'
-    timeout = 60 # FIXME: set default in config file
-    entryfile = 'main.tex'
+    worker = FT_WORKER_DEFAULT
+    timeout = FT_TIMEOUT_DEFAULT  # FIXME: set default in config file
+    entryfile = FT_ENTRYFILE_DEFAULT
 
+    # XXX: Use ElementTree instead of DOM
     doc = minidom.parseString(xmlbundle)
     rootElement = doc.documentElement
     assert rootElement.tagName == 'xmlbundle'
@@ -39,3 +46,8 @@ def ft_xmlbundle_to_request(xmlbundle) -> TeXRequest:
     texrequest =TeXRequest(targz_data, worker=worker, timeout=timeout, entryfile=entryfile)
     return texrequest
 
+
+def ft_json_to_request(jsondata) -> TeXRequest:
+    """Convert json submitted data into texrequest.
+    """
+    return None

@@ -5,15 +5,15 @@ from flask import request, abort
 from flasktex import app, bundle2tex
 
 
-def ft_api_route_prefix(version_string):
-    return "/api/{}".format(str(version_string))
+def _apiprefix(version):
+    return "/api/{}".format(str(version))
 
 
-@app.route(ft_api_route_prefix("1.0")+"/submit/xmlbundle", methods=['POST'])
+@app.route(_apiprefix("1.0")+"/submit/xmlbundle", methods=['POST'])
 def ft_api_submit_xmlbundle():
     try:
         data = request.get_data().decode('UTF-8')
-    except UnicodeDecodeError as e:
+    except UnicodeDecodeError:
         abort(400, 'UnicodeDecodeError')
     texrequest = bundle2tex.ft_xmlbundle_to_request(data)
     texrequest.process()
@@ -32,3 +32,15 @@ def ft_api_submit_xmlbundle():
             )
 
     return ret_string
+
+@app.route(_apiprefix("1.0")+'/submit', methods=['POST'])
+@app.route(_apiprefix("1.0")+'/submit/json', methods=['POST'])
+def ft_api_submit_json():
+    try:
+        data = request.get_data().decode('UTF-8')
+    except UnicodeDecodeError:
+        abort(400, 'UnicodeDecodeError')
+
+    # FIXME: finish me
+    return None
+
