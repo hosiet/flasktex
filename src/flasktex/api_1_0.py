@@ -41,10 +41,19 @@ def ft_api_submit_json():
         data = request.get_data().decode('UTF-8')
     except UnicodeDecodeError:
         abort(400, 'UnicodeDecodeError')
+    uploaded_data = None
+
+    class UploadedData(object):
+        def __init__(self, uploaded_data: dict):
+            super().__init__()
+            for i in uploaded_data:
+                assert isinstance(i, str)
+                setattr(self, i, uploaded_data[i])
+
     try:
-        json.loads(data)
+        uploaded_data = UploadedData(json.loads(data))
     except:
-        abort(400, 'DataIncompleteError')
+        abort(400, 'DataCorruptError')
 
 
     # FIXME: finish me, use JSON module
