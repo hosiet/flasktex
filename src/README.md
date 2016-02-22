@@ -75,6 +75,7 @@ e.g. (/flasktex)/api/1.0/
             "worker": "xelatex",
             "timeout": 60
         },
+    "files":
     [
         {
             "file": "filename.tex",
@@ -85,6 +86,7 @@ e.g. (/flasktex)/api/1.0/
             }
         },
         {}
+    ]
 }
 ```
 

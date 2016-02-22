@@ -3,6 +3,7 @@
 
 from flask import request, abort
 from flasktex import app, bundle2tex
+import json
 
 
 def _apiprefix(version):
@@ -40,7 +41,12 @@ def ft_api_submit_json():
         data = request.get_data().decode('UTF-8')
     except UnicodeDecodeError:
         abort(400, 'UnicodeDecodeError')
+    try:
+        json.loads(data)
+    except:
+        abort(400, 'DataIncompleteError')
 
-    # FIXME: finish me
+
+    # FIXME: finish me, use JSON module
     return None
 
