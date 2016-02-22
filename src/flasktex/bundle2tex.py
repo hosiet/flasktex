@@ -51,3 +51,17 @@ def ft_json_to_request(jsondata) -> TeXRequest:
     """Convert json submitted data into texrequest.
     """
     return None
+
+def ft_uploadedworkrequest_to_request(req) -> TeXRequest:
+    """
+    Convert UploadedWorkRequest to TeXRequest.
+    """
+    worker = FT_WORKER_DEFAULT
+    timeout = FT_TIMEOUT_DEFAULT  # FIXME: set default in config file
+    entryfile = FT_ENTRYFILE_DEFAULT
+
+    # TODO FIXME
+    # TODO dynamically create targz data
+
+    texrequest = TeXRequest(targz_data, worker=worker, timeout=timeout, entryfile=entryfile)
+    return texrequest

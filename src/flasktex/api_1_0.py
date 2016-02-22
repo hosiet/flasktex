@@ -3,8 +3,9 @@
 
 from flask import request, abort
 from flasktex import app, bundle2tex
-import json
+#from flasktex.bundle2tex import ft_uploadedworkrequest_to_request # TODO IMPLEMENT ME
 
+import json
 
 def _apiprefix(version):
     return "/api/{}".format(str(version))
@@ -16,6 +17,7 @@ def ft_api_submit_xmlbundle():
         data = request.get_data().decode('UTF-8')
     except UnicodeDecodeError:
         abort(400, 'UnicodeDecodeError')
+
     texrequest = bundle2tex.ft_xmlbundle_to_request(data)
     texrequest.process()
 
@@ -41,9 +43,13 @@ def ft_api_submit_json():
         data = request.get_data().decode('UTF-8')
     except UnicodeDecodeError:
         abort(400, 'UnicodeDecodeError')
-    uploaded_data = None
+    uploaded_work_request = None
 
-    class UploadedData(object):
+    class UploadedWorkRequest(object):
+        """
+        Object contains the POSTed json/xml request.
+
+        """
         def __init__(self, uploaded_data: dict):
             super().__init__()
             for i in uploaded_data:
@@ -51,9 +57,11 @@ def ft_api_submit_json():
                 setattr(self, i, uploaded_data[i])
 
     try:
-        uploaded_data = UploadedData(json.loads(data))
+        uploaded_work_request = UploadedData(json.loads(data))
     except:
         abort(400, 'DataCorruptError')
+
+    # TODO Convert UploadedWorkRequest to TeXRequest
 
 
     # FIXME: finish me, use JSON module

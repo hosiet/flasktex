@@ -75,6 +75,7 @@ e.g. (/flasktex)/api/1.0/
             "worker": "xelatex",
             "timeout": 60
         },
+    "type": "separated",
     "files":
     [
         {
@@ -87,6 +88,23 @@ e.g. (/flasktex)/api/1.0/
         },
         {}
     ]
+}
+```
+
+另一种方式也是传输被 targz 打包过后的文件与文件夹，与 xmlbundle 类似。
+```
+{
+    "request":
+        {
+            "worker": "xelatex",
+            "timeout": 60
+        },
+    "type": "bundle",
+    "content":
+        {
+            "content_type": "base64",
+             "content": "BASE64 ENCODED TEXT"
+        }
 }
 ```
 
