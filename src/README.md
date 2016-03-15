@@ -73,7 +73,8 @@ e.g. (/flasktex)/api/1.0/
     "request":
         {
             "worker": "xelatex",
-            "timeout": 60
+            "timeout": 60,
+            "entryfile": "main.tex"
         },
     "type": "separated",
     "files":
@@ -97,7 +98,8 @@ e.g. (/flasktex)/api/1.0/
     "request":
         {
             "worker": "xelatex",
-            "timeout": 60
+            "timeout": 60,
+            "entryfile": "main.tex"
         },
     "type": "bundle",
     "content":

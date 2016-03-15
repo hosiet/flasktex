@@ -47,21 +47,40 @@ def ft_xmlbundle_to_request(xmlbundle) -> TeXRequest:
     return texrequest
 
 
-def ft_json_to_request(jsondata) -> TeXRequest:
-    """Convert json submitted data into texrequest.
-    """
-    return None
-
 def ft_uploadedworkrequest_to_request(req) -> TeXRequest:
     """
     Convert UploadedWorkRequest to TeXRequest.
     """
+    import base64
+
     worker = FT_WORKER_DEFAULT
     timeout = FT_TIMEOUT_DEFAULT  # FIXME: set default in config file
     entryfile = FT_ENTRYFILE_DEFAULT
 
-    # TODO FIXME
-    # TODO dynamically create targz data
+    targz_data = None
 
-    texrequest = TeXRequest(targz_data, worker=worker, timeout=timeout, entryfile=entryfile)
-    return texrequest
+    try:
+        timeout = int(req.request.['timeout'])
+    except KeyError:
+        pass
+    try:
+        worker = req.request.['worker']
+    except KeyError:
+        pass
+    try:
+        entryfile = req.request.['entryfile']
+    except KeyError:
+        pass
+    if req.type is 'bundle':
+        # bundle PROCESS
+        # de-base64
+        if req.content['content_type'] is 'base64':
+            targz_data = base64.b64decode(req.content['content'].encode('UTF-8'))
+            assert isinstance(targz_data, bytes)
+        else:
+            raise NotImplementedError
+    else:
+        raise NotImplementedError
+
+    return TeXRequest(targz_data, worker=worker, timeout=timeout, entryfile=entryfile)
+
