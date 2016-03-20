@@ -53,6 +53,8 @@ e.g. (/flasktex)/api/1.0/
 
 如果出错，返回标准500页面？（暂定）
 
+正常情况下，返回202 Accepted
+
 ```
 {
     "status": true,
@@ -120,7 +122,7 @@ e.g. (/flasktex)/api/1.0/
 
 #### 请求格式
 
-* GET `/result/<int:id>/status`
+* GET `/api/1.0/result/<int:id>/status`
 
 #### 返回格式
 
@@ -135,7 +137,31 @@ e.g. (/flasktex)/api/1.0/
 
 ### 结果查询
 
+GET `/api/1.0/result/<int:id>/pdf?retrieve_id=<int:retrieve_id>`
+
+Returns:
+
+`Content-Disposition: inline; filename="output.pdf"`
+
+Result may be:
+
+200 OK for ok
+202 Accepted for processing
+403 Forbidden for wrong retrieve id
+<!--410 Gone for deleted id-->
+404 Not Found for non-existent record
+
+暂时不支持断点续传。
+
 ## 其它操作
 ### 删除工作信息
+
+DELETE `/api/1.0/result/<int:id>/pdf?retrieve_id=<int:retrieve_id>`
+
+Results may be:
+
+403 Forbidden for bad retrieve id
+204 No Content for successful work
+404 Not Found for non-existent record
 #### 请求格式
 #### 返回格式

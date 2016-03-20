@@ -52,6 +52,7 @@ def ft_uploadedworkrequest_to_request(req) -> TeXRequest:
     Convert UploadedWorkRequest to TeXRequest.
     """
     import base64
+    import syslog
 
     worker = FT_WORKER_DEFAULT
     timeout = FT_TIMEOUT_DEFAULT  # FIXME: set default in config file

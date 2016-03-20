@@ -42,7 +42,7 @@ def ft_db_setup_record_sqlite(texrequest, conn):
               'VALUES (?, ?, ?, ?, ?)',
               (
                 texrequest.retrieve_id,  # FIXME
-                texrequest.targz_data,
+                sqlite3.Binary(texrequest.targz_data),
                 str(texrequest.entryfile),
                 str(var_start_time),
                 'INIT',
