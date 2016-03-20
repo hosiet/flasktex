@@ -10,8 +10,7 @@ import os
 import xml
 import xml.dom as dom
 
-
-def ft_dir_to_b64(path):
+def ft_dir_to_b64(path:str) -> bytes:
     """
     Convert the given directory to a targz file, then base64 it.
 
@@ -41,7 +40,7 @@ def ft_dir_to_b64(path):
 
 
 def _ft_gen_texbundle_xml(
-        b64bytes,
+        b64bytes:bytes,
         entryfile="main.tex",
         worker='xelatex',
         timeout=60) -> str:
@@ -70,6 +69,39 @@ def _ft_gen_texbundle_xml(
     doc.documentElement.appendChild(bundleNode)
 
     return doc.toxml()
+
+def _ft_gen_texbundle_json_bundled(
+        b64bytes:bytes,
+        entryfile='main.tex',
+        worker='xelatex',
+        timeout=60) -> str:
+    """
+    Generate json bundle (bundled style) from base64 bytes and given metadata
+    as api_1_0.
+
+    Written to use json.dumps()
+
+    :returns: JSON-formatted bundle string
+    :rtype: str
+    """
+
+    import json
+
+    return json.dumps(
+        dict(
+            request=dict(
+                worker=worker,
+                timeout=timeout, 
+                entryfile=entryfile,
+                ),
+            type='bundle',
+            content=dict(
+                content_type='base64',
+                content=b64bytes.decode('UTF-8'),
+                ),
+            )
+        )
+
 
 
 if __name__ == "__main__":
