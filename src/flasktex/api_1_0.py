@@ -11,6 +11,9 @@ import json
 def _apiprefix(version):
     return "/api/{}".format(str(version))
 
+@app.route(_apiprefix('1.0')+'/ping')
+def ft_api_pingback():
+    return 'pong'
 
 @app.route(_apiprefix("1.0")+"/submit/xmlbundle", methods=['POST'])
 def ft_api_submit_xmlbundle():

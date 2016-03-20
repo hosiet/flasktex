@@ -11,7 +11,8 @@ import flasktex.config
 import flasktex.views
 import flasktex.texrequest
 import flasktex.api_1_0
-import flasktex.bundle2tex, flasktex.tex2bundle
+import flasktex.bundle2tex
+import flasktex.tex2bundle
 import flasktex.db
 
 # Convenience imports
