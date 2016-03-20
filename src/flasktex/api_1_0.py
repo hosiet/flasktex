@@ -51,7 +51,6 @@ def ft_api_submit_json():
     except:
         abort(400, 'DataCorruptError')
 
-    # TODO Convert UploadedWorkRequest to TeXRequest
     texrequest = bundle2tex.ft_uploadedworkrequest_to_request(uploaded_work_request)
     texrequest.process()
 

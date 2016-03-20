@@ -2,6 +2,9 @@
 """make files in given dir into xml bundle string.
 """
 
+__license__ = 'BSD-3'
+__docformat__ = 'reStructuredText'
+
 import sys
 import os
 import xml
@@ -9,15 +12,22 @@ import xml.dom as dom
 
 
 def ft_dir_to_b64(path):
-    """gzip given dir, then base64 it.
+    """
+    Convert the given directory to a targz file, then base64 it.
 
-    return the base64-encoded bytes.
+    :param arg1: the directory path
+    :type arg1: str
+    :returns: the base64-encoded bytes
+    :rtype: bytes
+
+    ..note:: Even though we prefer POSIX.1-2001(pax) formatted farfile,
+        the whole program will still support GNU tar format.
+    ..todo:: any kind of improvement is welcomed.
     """
     import tarfile
     import tempfile
     import base64
 
-    # XXX: No good implementation
     pwd = os.getcwd()
     fileobj = tempfile.SpooledTemporaryFile(mode='w+b')
     tar = tarfile.open(mode="w:gz", format=tarfile.PAX_FORMAT, fileobj=fileobj)
@@ -31,10 +41,15 @@ def ft_dir_to_b64(path):
 
 
 def _ft_gen_texbundle_xml(
-        b64bytes, entryfile="main.tex", worker='xelatex', timeout=60):
-    """Generate xmlbundle as in api v1.0.
+        b64bytes,
+        entryfile="main.tex",
+        worker='xelatex',
+        timeout=60) -> str:
+    """
+    Generate xmlbundle from base64 bytes and given metadata as api_1_0.
 
-    return str object.
+    :returns: XML-formatted bundle string
+    :rtype: str
     """
 
     impl = dom.getDOMImplementation()
