@@ -11,7 +11,7 @@ import json
 def _apiprefix(version):
     return "/api/{}".format(str(version))
 
-@app.route(_apiprefix('1.0')+'/ping')
+@app.route('/ping')
 def ft_api_pingback():
     return 'pong'
 
@@ -50,7 +50,7 @@ def ft_api_submit_json():
     uploaded_work_request = None
 
     try:
-        uploaded_work_request = UploadedData(json.loads(data), objtype='json')
+        uploaded_work_request = UploadedWorkRequest(json.loads(data), objtype='json')
     except:
         abort(400, 'DataCorruptError')
 

@@ -60,27 +60,27 @@ def ft_uploadedworkrequest_to_request(req) -> TeXRequest:
     targz_data = None
 
     try:
-        timeout = int(req.request.['timeout'])
+        timeout = int(req.request['timeout'])
     except KeyError:
         pass
     try:
-        worker = req.request.['worker']
+        worker = req.request['worker']
     except KeyError:
         pass
     try:
-        entryfile = req.request.['entryfile']
+        entryfile = req.request['entryfile']
     except KeyError:
         pass
-    if req.type is 'bundle':
+    if req.type == 'bundle':
         # bundle PROCESS
         # de-base64
-        if req.content['content_type'] is 'base64':
+        if req.content['content_type'] == 'base64':
             targz_data = base64.b64decode(req.content['content'].encode('UTF-8'))
             assert isinstance(targz_data, bytes)
         else:
             raise NotImplementedError
     else:
-        raise NotImplementedError
+        raise NotImplementedError('{}'.format(req.type))
 
     return TeXRequest(targz_data, worker=worker, timeout=timeout, entryfile=entryfile)
 
