@@ -46,6 +46,14 @@ e.g. (/flasktex)/api/1.0/
     <!-- 可能有多个文件 -->
 </xmlbundle>
 ```
+#### 内部存储状态
+
+* INIT
+* STARTING
+* RUNNING
+* SUCCESS
+* `FAILURE_REASON`
+* DELETED
 
 #### 返回格式
 
@@ -145,11 +153,12 @@ Returns:
 
 Result may be:
 
-200 OK for ok
-202 Accepted for processing
-403 Forbidden for wrong retrieve id
-<!--410 Gone for deleted id-->
-404 Not Found for non-existent record
+* 200 OK for ok
+* 202 Accepted for processing
+* 403 Forbidden for wrong retrieve id
+* 410 Gone for deleted id
+* 410 Gone + server processing failure
+* 404 Not Found for non-existent record
 
 暂时不支持断点续传。
 

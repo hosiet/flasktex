@@ -95,6 +95,7 @@ class TeXRequest():
         # XXX: Test the wrapper
         self.set_status('SUCCESS')
         flasktex.db.ft_db_record_success(self.conn, self.id, log_str, pdf_data)
+        syslog.syslog('Worker finished, succeed. Exiting...')
         sys.exit(0)
         return
 
@@ -213,9 +214,11 @@ class TeXRequest():
                     stderr=subprocess.PIPE)
             syslog.syslog('Working process started, workid:{}, pid:{}.'.format(
                     self.id, self.popen.pid))
+            self.set_status('RUNNING')
             (stdout_data, stderr_data) = self.popen.communicate(
                     input=None, timeout=self.timeout)
             # XXX: All data were read here
+            syslog.syslog('latexmk Popen communication was completed.')
             assert isinstance(stdout_data, bytes)
             assert isinstance(stderr_data, bytes)
             log_str = u''

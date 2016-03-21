@@ -12,7 +12,7 @@ def ft_db_init_conn_sqlite(path=None):
     else:
         db_file = ft_config_get('FT_DB_FILE')
     assert db_file is not None and db_file != ''
-    conn = sqlite3.connect(ft_config_get('FT_DB_FILE'))
+    conn = sqlite3.connect(db_file)
     assert conn is not None
     return conn
 
